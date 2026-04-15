@@ -1,7 +1,7 @@
 import Header from "@/components/header";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { Stack, useNavigation, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 
 // AuthGuard enforces protected routes globally
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
