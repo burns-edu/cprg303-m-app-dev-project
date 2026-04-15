@@ -1,8 +1,8 @@
 import Header from "@/components/header";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { Stack, useNavigation, useRouter, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
 import Sidebar from "@/components/sidebar";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { Stack, useRouter, useSegments } from "expo-router";
+import { useEffect, useState } from "react";
 
 // AuthGuard enforces protected routes globally
 const AuthGuard = ({ children }: { children: React.ReactNode }) => {
@@ -26,7 +26,6 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function RootLayout() {
-  const navigation = useNavigation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -35,14 +34,21 @@ export default function RootLayout() {
         <Stack
           // Header default settings
           screenOptions={{
-            header: () => <Header showBack={navigation.canGoBack()} showNav onNavPress={() => setSidebarOpen(true)} />,
+            header: () => (
+              <Header
+                showBack
+                showNav
+                onNavPress={() => setSidebarOpen(true)}
+              />
+            ),
           }}
         >
           {/* Login Page - No back or nav buttons */}
           <Stack.Screen name="index" options={{ header: () => <Header /> }} />
-          {/* Login Page - No back or nav buttons */}
-          <Stack.Screen name="signup" options={{ header: () => <Header showBack /> }} />
+          {/* Sign Up Page - No back or nav button */}
+          <Stack.Screen name="signup" options={{ header: () => <Header /> }} />
         </Stack>
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </AuthGuard>
     </AuthProvider>
   );

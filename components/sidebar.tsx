@@ -1,13 +1,14 @@
 // components/Sidebar.tsx
+import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useSegments } from "expo-router";
 import React from "react";
 import {
-    Dimensions,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const { width } = Dimensions.get("window");
@@ -27,6 +28,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const router = useRouter();
   const segments = useSegments();
+  const { signOut } = useAuth();
 
   const menuItems: MenuItem[] = [
     { icon: "person", label: "Profile", route: "/profile" },
@@ -40,8 +42,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const handleLogout = () => {
-    router.replace("/"); // Returns to login page
+  const handleLogout = async () => {
+    await signOut();
     onClose();
   };
 
