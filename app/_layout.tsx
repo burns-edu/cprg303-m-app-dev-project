@@ -25,20 +25,19 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function RootLayout() {
-  // const navigation = useNavigation();
+  const navigation = useNavigation();
 
   return (
     <AuthProvider>
       <AuthGuard>
         <Stack
           // Header default settings
-          // screenOptions={{
-          //   header: () => <Header showBack={navigation.canGoBack()} showNav />,
-          // }}
+          screenOptions={{
+            header: () => <Header showBack={navigation.canGoBack()} showNav />,
+          }}
         >
           {/* Login Page - No back or nav buttons */}
           <Stack.Screen name="index" options={{ header: () => <Header /> }} />
-          <Stack.Screen name="(tabs)" options={{ header: () => <Header showNav /> }} />
         </Stack>
       </AuthGuard>
     </AuthProvider>
