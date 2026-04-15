@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
+import { useRouter } from "expo-router";
 
 // Zod schema for Sign Up fields
 const signupSchema = z
@@ -28,6 +29,7 @@ const signupSchema = z
 type LoginForm = z.infer<typeof signupSchema>;
 
 export default function SignUp() {
+  const router = useRouter();
   const { session, isLoading, signUp: signUp } = useAuth();
   const {
     control,
@@ -166,7 +168,7 @@ export default function SignUp() {
       </View>
       <View style={styles.signUpContainer}>
         <Text style={styles.text}>Already have an account?</Text>
-        <Text style={styles.signUp}>Log In</Text>
+        <Text style={styles.signUp} onPress={() => router.push("/")}>Log In</Text>
       </View>
     </View>
   );
