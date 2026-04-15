@@ -1,6 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Redirect, useRouter } from "expo-router";
+import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -12,27 +12,35 @@ import {
 } from "react-native";
 import { z } from "zod";
 
-// Zod schema for Login fields
-const loginSchema = z.object({
-  username: z.email("Invalid email"),
-  password: z.string().min(6, "Password must be minimum 6 characters"),
-});
+// Zod schema for Sign Up fields
+const signupSchema = z
+  .object({
+    email: z.email("invalid email"),
+    username: z.string().min(2, "Username must be minimum 2 characters"),
+    password: z.string().min(6, "Password must be minimum 6 characters"),
+    password2: z.string(),
+  })
+  .refine((data) => data.password === data.password2, {
+    message: "passwords must match exactly",
+    path: ["password2"],
+  });
 
-type LoginForm = z.infer<typeof loginSchema>;
+type LoginForm = z.infer<typeof signupSchema>;
 
-export default function Login() {
-  const router = useRouter();
-  const { session, isLoading, signIn } = useAuth();
+export default function SignUp() {
+  const { session, isLoading, signUp: signUp } = useAuth();
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors },
   } = useForm<LoginForm>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(signupSchema),
     defaultValues: {
+      email: "",
       username: "",
       password: "",
+      password2: "",
     },
     mode: "onSubmit",
   });
@@ -40,7 +48,7 @@ export default function Login() {
   // Call Supabase for authentication
   const onSubmit = async (data: LoginForm) => {
     try {
-      await signIn(data.username, data.password);
+      await signUp(data.email, data.password);
     } catch (error: any) {
       setError("root", { message: error.message });
     }
@@ -56,16 +64,32 @@ export default function Login() {
   }
 
   // If logged in, redirect to dashboard
-  if (session) {
-    return <Redirect href={"/(tabs)/home"} />;
-  }
+  // if (session) {
+  //   return <Redirect href={"/(tabs)/home"} />;
+  // }
 
   return (
     <View style={styles.page}>
       <View style={styles.container}>
-        <Text style={styles.title}>Login</Text>
+        <Text style={styles.title}>Sign Up</Text>
 
-        {/* Username */}
+        {/* Email */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Email</Text>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={[styles.input, errors.email && styles.inputError]}
+                placeholder="example@provider.com"
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+        </View>
+
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Username</Text>
           <Controller
@@ -74,8 +98,7 @@ export default function Login() {
             render={({ field: { onChange, value } }) => (
               <TextInput
                 style={[styles.input, errors.username && styles.inputError]}
-                placeholder="e.g. John@gmail.com"
-                //placeholderTextColor=???
+                placeholder="JohnSmith123"
                 value={value}
                 onChangeText={onChange}
               />
@@ -96,7 +119,7 @@ export default function Login() {
             render={({ field: { onChange, value } }) => (
               <TextInput
                 style={[styles.input, errors.password && styles.inputError]}
-                placeholder="******"
+                placeholder="must contain at least 6 digits"
                 secureTextEntry
                 value={value}
                 onChangeText={onChange}
@@ -107,6 +130,28 @@ export default function Login() {
 
         {errors.password && (
           <Text style={styles.error}>{errors.password.message}</Text>
+        )}
+
+        {/* Confirm Password */}
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Confirm Password</Text>
+          <Controller
+            control={control}
+            name="password2"
+            render={({ field: { onChange, value } }) => (
+              <TextInput
+                style={[styles.input, errors.password && styles.inputError]}
+                placeholder="must match password exactly"
+                secureTextEntry
+                value={value}
+                onChangeText={onChange}
+              />
+            )}
+          />
+        </View>
+
+        {errors.password2 && (
+          <Text style={styles.error}>{errors.password2.message}</Text>
         )}
 
         {errors.root && <Text style={styles.error}>{errors.root.message}</Text>}
@@ -120,10 +165,8 @@ export default function Login() {
         </TouchableOpacity>
       </View>
       <View style={styles.signUpContainer}>
-        <Text style={styles.text}>Don't have an account?</Text>
-        <Text style={styles.signUp} onPress={() => router.push("/signup")}>
-          Sign Up
-        </Text>
+        <Text style={styles.text}>Already have an account?</Text>
+        <Text style={styles.signUp}>Log In</Text>
       </View>
     </View>
   );
