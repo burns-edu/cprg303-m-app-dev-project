@@ -9,11 +9,13 @@ import {
 type HeaderProps = {
   showBack?: boolean;
   showNav?: boolean;
+  onNavPress?: () => void;
 };
 
 export default function Header({
   showBack = false,
   showNav = false,
+  onNavPress,
 }: HeaderProps) {
   return (
     <View style={styles.header}>
@@ -37,7 +39,7 @@ export default function Header({
         {showNav && (
           <TouchableOpacity
             style={styles.buttonBox}
-            onPress={() => console.log("Nav pressed")}
+            onPress={onNavPress}
           >
             <Text style={styles.button}>☰</Text>
           </TouchableOpacity>
