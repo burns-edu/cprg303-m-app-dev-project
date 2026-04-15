@@ -1,7 +1,9 @@
+import { useAuth } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { router } from "expo-router";
+import { Redirect } from "expo-router";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
@@ -19,9 +21,11 @@ const loginSchema = z.object({
 type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
+  const { session, isLoading, signIn } = useAuth();
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -32,9 +36,28 @@ export default function Login() {
     mode: "onSubmit",
   });
 
-  const onSubmit = (data: LoginForm) => {
-    router.replace("/(tabs)/home" as any); // Reroute as we set up more pages
+  // Call Supabase for authentication
+  const onSubmit = async (data: LoginForm) => {
+    try {
+      await signIn(data.username, data.password);
+    } catch (error: any) {
+      setError("root", { message: error.message });
+    }
   };
+
+  // Show spinner while loading
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // If logged in, redirect to dashboard
+  if (session) {
+    return <Redirect href={"/(tabs)/home"} />;
+  }
 
   return (
     <View style={styles.page}>
@@ -73,6 +96,7 @@ export default function Login() {
               <TextInput
                 style={[styles.input, errors.password && styles.inputError]}
                 placeholder="******"
+                secureTextEntry
                 value={value}
                 onChangeText={onChange}
               />
@@ -83,6 +107,8 @@ export default function Login() {
         {errors.password && (
           <Text style={styles.error}>{errors.password.message}</Text>
         )}
+
+        {errors.root && <Text style={styles.error}>{errors.root.message}</Text>}
 
         {/* Submit Button */}
         <TouchableOpacity
@@ -187,5 +213,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: "#00b3ff",
     textDecorationLine: "underline",
+  },
+
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
