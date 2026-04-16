@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Redirect, useRouter } from "expo-router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -22,6 +23,7 @@ type LoginForm = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
   const { session, isLoading, signIn } = useAuth();
   const {
     control,
@@ -38,15 +40,19 @@ export default function Login() {
   });
 
   // Call Supabase for authentication
+  // Show spinner while login request in processing
   const onSubmit = async (data: LoginForm) => {
+    setSubmitting(true);
     try {
       await signIn(data.username, data.password);
     } catch (error: any) {
       setError("root", { message: error.message });
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Show spinner while loading
+  // Show spinner while loading page
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -115,8 +121,13 @@ export default function Login() {
         <TouchableOpacity
           style={styles.button}
           onPress={handleSubmit(onSubmit)}
+          disabled={submitting}
         >
-          <Text style={styles.buttonText}>Submit</Text>
+          {submitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Submit</Text>
+          )}
         </TouchableOpacity>
       </View>
       <View style={styles.signUpContainer}>

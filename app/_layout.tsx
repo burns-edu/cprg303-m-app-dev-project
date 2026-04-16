@@ -16,9 +16,9 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
     const inTabGroup = segments[0] === "(tabs)";
 
     if (!session && inTabGroup) {
-      router.replace("/"); // not signed in, kick to login
+      router.replace("/"); // not logged in, kick to login
     } else if (session && !inTabGroup) {
-      router.replace("/(tabs)/home"); // signed in, go to app
+      router.replace("/(tabs)/home"); // logged in, go to app
     }
   }, [session, isLoading, segments]);
 
@@ -26,17 +26,21 @@ const AuthGuard = ({ children }: { children: React.ReactNode }) => {
 };
 
 export default function RootLayout() {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const segments = useSegments();
+  const onDashboard = segments[1] === "home";
 
   return (
     <AuthProvider>
       <AuthGuard>
         <Stack
-          // Header default settings
+          // Default settings
           screenOptions={{
             header: () => (
               <Header
-                showBack
+                showBack={!onDashboard}
+                onBackPress={() => router.push("/(tabs)/home")}
                 showNav
                 onNavPress={() => setSidebarOpen(true)}
               />
@@ -45,8 +49,15 @@ export default function RootLayout() {
         >
           {/* Login Page - No back or nav buttons */}
           <Stack.Screen name="index" options={{ header: () => <Header /> }} />
-          {/* Sign Up Page - No back or nav button */}
-          <Stack.Screen name="signup" options={{ header: () => <Header /> }} />
+          {/* Sign Up Page - No nav button */}
+          <Stack.Screen
+            name="signup"
+            options={{
+              header: () => (
+                <Header showBack onBackPress={() => router.push("/")} />
+              ),
+            }}
+          />
         </Stack>
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </AuthGuard>
