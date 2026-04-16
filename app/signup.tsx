@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import { Redirect, useRouter } from "expo-router";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -11,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-import { useRouter } from "expo-router";
 
 // Zod schema for Sign Up fields
 const signupSchema = z
@@ -26,17 +26,18 @@ const signupSchema = z
     path: ["password2"],
   });
 
-type LoginForm = z.infer<typeof signupSchema>;
+type SignUpForm = z.infer<typeof signupSchema>;
 
 export default function SignUp() {
   const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
   const { session, isLoading, signUp: signUp } = useAuth();
   const {
     control,
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<LoginForm>({
+  } = useForm<SignUpForm>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
       email: "",
@@ -48,15 +49,19 @@ export default function SignUp() {
   });
 
   // Call Supabase for authentication
-  const onSubmit = async (data: LoginForm) => {
+  // Show spinner while sign up request in processing
+  const onSubmit = async (data: SignUpForm) => {
+    setSubmitting(true);
     try {
       await signUp(data.email, data.password);
     } catch (error: any) {
       setError("root", { message: error.message });
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Show spinner while loading
+  // Show spinner while loading page
   if (isLoading) {
     return (
       <View style={styles.centered}>
@@ -66,9 +71,9 @@ export default function SignUp() {
   }
 
   // If logged in, redirect to dashboard
-  // if (session) {
-  //   return <Redirect href={"/(tabs)/home"} />;
-  // }
+  if (session) {
+    return <Redirect href={"/(tabs)/home"} />;
+  }
 
   return (
     <View style={styles.page}>
@@ -92,6 +97,7 @@ export default function SignUp() {
           />
         </View>
 
+        {/* Username */}
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Username</Text>
           <Controller
@@ -162,13 +168,20 @@ export default function SignUp() {
         <TouchableOpacity
           style={styles.button}
           onPress={handleSubmit(onSubmit)}
+          disabled={submitting}
         >
-          <Text style={styles.buttonText}>Submit</Text>
+          {submitting ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.buttonText}>Submit</Text>
+          )}
         </TouchableOpacity>
       </View>
       <View style={styles.signUpContainer}>
         <Text style={styles.text}>Already have an account?</Text>
-        <Text style={styles.signUp} onPress={() => router.push("/")}>Log In</Text>
+        <Text style={styles.signUp} onPress={() => router.push("/")}>
+          Log In
+        </Text>
       </View>
     </View>
   );
